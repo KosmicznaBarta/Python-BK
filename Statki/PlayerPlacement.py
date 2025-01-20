@@ -55,8 +55,10 @@ class ShipPlacement:
 
     def exit_game(self):
         if messagebox.askyesno("Zamknięcie gry", "Czy na pewno chcesz zakończyć grę?"):
-            self.game_window.destroy()
-            self.selection_window.destroy()
+            if self.selection_window.winfo_exists():
+                self.selection_window.destroy()
+            if self.game_window.winfo_exists():
+                self.game_window.destroy()
 
     def center_window(self):
         self.selection_window.update_idletasks()
@@ -116,7 +118,7 @@ class ShipPlacement:
 
         for ship_size, button in self.ship_buttons.items():
             if self.remaining_ships[ship_size] > 0:
-                button.config(bg="SystemButtonFace")
+                button.config(bg="#f0f0f0")
 
         self.ship_buttons[size].config(bg="lightgrey")
         self.selected_ship_size = size

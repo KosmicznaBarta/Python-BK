@@ -6,44 +6,53 @@ from RandomPlacement import RandomShips
 
 class BattleshipGame:
     def __init__(self, game_window):
-        self.game_window = game_window
-        self.game_window.title("Gra w statki")
-        self.game_window.protocol("WM_DELETE_WINDOW", self.exit_game)
-        self.game_window.resizable(False, False)
+        try:
+            if not game_window.winfo_exists():
+                return 
+        
+            self.game_window = game_window
+            self.game_window.title("Gra w statki")
+            self.game_window.protocol("WM_DELETE_WINDOW", self.exit_game)
+            self.game_window.resizable(False, False)
 
-        self.game_window.bind("<F12>", self.end_game_walkover)
+            self.game_window.bind("<F12>", self.end_game_walkover)
 
-        self.board_size = 10
-        self.ship_sizes = [5, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1]
+            self.board_size = 10
+            self.ship_sizes = [5, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1]
 
-        self.player_board = self.get_player_board()
-        self.computer_board = [[0] * self.board_size for _ in range(self.board_size)]
-        self.computer_hits = []
-        self.is_player_turn = True
+            self.player_board = self.get_player_board()
+            self.computer_board = [[0] * self.board_size for _ in range(self.board_size)]
+            self.computer_hits = []
+            self.is_player_turn = True
 
-        self.player_buttons = []
-        self.computer_buttons = []
+            self.player_buttons = []
+            self.computer_buttons = []
 
-        self.player_score = {"Trafione": 0, "Zatopione": 0}
-        self.computer_score = {"Trafione": 0, "Zatopione": 0}
-        self.current_turn = "Gracz"
+            self.player_score = {"Trafione": 0, "Zatopione": 0}
+            self.computer_score = {"Trafione": 0, "Zatopione": 0}
+            self.current_turn = "Gracz"
 
-        self.status_label = tk.Label(self.game_window, text="Gracz 1 zaczyna rozgrywkę", font=("Arial", 14))
-        self.status_label.grid(row=0, column=0, columnspan=self.board_size * 2 + 4)
+            self.status_label = tk.Label(self.game_window, text="Gracz 1 zaczyna rozgrywkę", font=("Arial", 14))
+            self.status_label.grid(row=0, column=0, columnspan=self.board_size * 2 + 4)
 
-        self.score_label = tk.Label(self.game_window, text="", font=("Arial", 14))
-        self.score_label.grid(row=self.board_size + 4, column=0, columnspan=self.board_size * 2 + 4)
+            self.score_label = tk.Label(self.game_window, text="", font=("Arial", 14))
+            self.score_label.grid(row=self.board_size + 4, column=0, columnspan=self.board_size * 2 + 4)
 
-        self.create_boards()
-        self.random_ships = RandomShips(self.board_size, self.ship_sizes)
-        self.random_ships.place_ships_with_shapes(self.computer_board)
-        self.center_window()
+            self.create_boards()
+            self.random_ships = RandomShips(self.board_size, self.ship_sizes)
+            self.random_ships.place_ships_with_shapes(self.computer_board)
+            self.center_window()
+        except tk.TclError:
+            pass
 
     def exit_game(self):
         if messagebox.askyesno("Zamknięcie gry", "Czy na pewno chcesz zakończyć grę?"):
             self.game_window.destroy()
 
     def end_game_walkover(self, event):
+        if not self.game_window.winfo_exists():
+            return
+        
         result = messagebox.askquestion("Koniec Gry!", "Walkower!\nGracz zakończył grę wcześniej.\nCzy chcesz rozpocząć nową grę?", type="yesno")
             
         if result == "yes":
@@ -60,12 +69,15 @@ class BattleshipGame:
         self.game_window.geometry(f"{width}x{height}+{x}+{y}")
 
     def get_player_board(self):
-        setup_root = tk.Toplevel(self.game_window)
-        self.game_window.withdraw()
-        placement = ShipPlacement(setup_root, self.game_window, self.board_size, self.ship_sizes)
-        setup_root.wait_window()
-        self.game_window.deiconify()
-        return placement.board
+        try:
+            setup_root = tk.Toplevel(self.game_window)
+            self.game_window.withdraw()
+            placement = ShipPlacement(setup_root, self.game_window, self.board_size, self.ship_sizes)
+            setup_root.wait_window()
+            self.game_window.deiconify()
+            return placement.board
+        except tk.TclError:
+            return [[0] * self.board_size for _ in range(self.board_size)]
 
     def create_boards(self):
         tk.Label(self.game_window, text="Twoja plansza", font=("Arial", 16), anchor="center").grid(row=1, column=0, columnspan=self.board_size, pady=(0, 5), padx=(72, 0))
@@ -299,7 +311,13 @@ class BattleshipGame:
                 self.game_window.destroy()
 
     def restart_game(self):
+        if not self.game_window.winfo_exists():
+            return
+
         for widget in self.game_window.winfo_children():
             widget.destroy()
 
-        self.__init__(self.game_window)
+        try:
+            self.__init__(self.game_window)
+        except tk.TclError:
+            pass
