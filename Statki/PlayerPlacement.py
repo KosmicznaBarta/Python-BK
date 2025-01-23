@@ -194,10 +194,23 @@ class ShipPlacement:
     def cannot_place_ship(self, x, y):
         if not self.selected_ship_size:
             return
-
-        if not self.can_place_ship(x, y):
-            self.status_label.config(text="Nie możesz położyć statku obok innego statku!")
-            return
+        
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
+                    if self.board[nx][ny] == 1 and (nx, ny) not in self.current_ship_positions:
+                        self.status_label.config(text="Nie możesz położyć statku obok innego statku!")
+                        return
+        
+        if len(self.current_ship_positions) > 0:
+            valid = any(
+                abs(segment_x - x) + abs(segment_y - y) == 1
+                for segment_x, segment_y in self.current_ship_positions
+            )
+            if not valid:
+                self.status_label.config(text="Nie możesz postawić pola statku w tym miejscu!")
+                return
 
         self.place_ship(x, y)
         self.check_ready_to_confirm_button()
@@ -216,7 +229,7 @@ class ShipPlacement:
 
             if self.remaining_ships[self.selected_ship_size] <= 0:
                 self.status_label.config(text=f"Postawione zostały wszystkie statki o długości {self.selected_ship_size}.")
-                self.ship_buttons[self.selected_ship_size].config(bg="SystemButtonFace")
+                self.ship_buttons[self.selected_ship_size].config(bg="#f0f0f0")
                 self.selected_ship_size = None
 
     def cancel_incomplete_ship(self):
@@ -241,6 +254,8 @@ class ShipPlacement:
         self.selected_ship_to_remove = []
         self.undo_button.config(state="disabled")
         self.status_label.config(text=f"Pomyślnie cofnięto położenie statku o długości {ship_size}.")
+
+        self.check_ready_to_confirm_button()
 
     def can_place_ship(self, x, y):
         if self.board[x][y] == 1:
@@ -277,7 +292,7 @@ class ShipPlacement:
         return "Pozostałe statki do postawienia: " + ", ".join(f"{size}: {count}" for size, count in self.remaining_ships.items() if count > 0)
 
     def check_ready_to_confirm_button(self):
-        if all(count == 0 for count in self.remaining_ships.values()):
+        if all(count == 0 for count in self.remaining_ships.values()) and not self.current_ship_positions:
             self.confirm_button.config(state="normal")
         else:
             self.confirm_button.config(state="disabled")

@@ -276,10 +276,8 @@ class BattleshipGame:
                 self.player_score["Zatopione"] += 1
             else:
                 self.computer_score["Zatopione"] += 1
-
-            for cx, cy in ship_coordinates:
-                self.mark_neighbors_as_checked(cx, cy, board)
-                board[cx][cy] = -2
+                for cx, cy in ship_coordinates:
+                    self.mark_neighbors_as_checked(cx, cy, board)
 
             return True
         
